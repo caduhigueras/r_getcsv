@@ -77,6 +77,8 @@ jobs:
           docker run --rm -v $PWD:/workspace -w /workspace amazonlinux:2 bash -c "
             set -euxo pipefail
             yum install -y gcc gcc-c++ make openssl-devel php php-devel php-pear curl git && \
+            curl https://sh.rustup.rs -sSf | sh -s -- -y && \
+            source \$HOME/.cargo/env && \
             cargo build --release && \
             mkdir -p dist && \
             cp target/release/libr_getcsv.so dist/libr_getcsv-php${{ matrix.php-version }}-amazonlinux.so
