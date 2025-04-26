@@ -74,7 +74,7 @@ jobs:
 
       - name: Build inside Amazon Linux container
         run: |
-          docker run --rm 
+          docker run --rm \
             -e PHP_VERSION=${{ matrix.php-version }} \
             -v $PWD:/workspace -w /workspace amazonlinux:2 bash -c "
               set -euxo pipefail
