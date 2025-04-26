@@ -76,10 +76,25 @@ jobs:
         run: |
           docker run --rm -v $PWD:/workspace -w /workspace amazonlinux:2 bash -c "
             set -euxo pipefail
-            yum install -y gcc gcc-c++ make openssl-devel php php-devel php-pear curl git && \
+          
+            # Install PHP CLI and build dependencies
+            yum install -y gcc gcc-c++ make openssl-devel php-cli php-devel php-pear curl git && \
+          
+            # Confirm PHP is installed
+            php -v && which php && \
+          
+            # Install Rust
             curl https://sh.rustup.rs -sSf | sh -s -- -y && \
             source \$HOME/.cargo/env && \
+          
+            # Confirm PHP is available to Rust build
+            export PHP=\$(which php) && \
+            echo PHP executable is: \$PHP && \
+          
+            # Build the extension
             cargo build --release && \
+          
+            # Prepare artifacts
             mkdir -p dist && \
             cp target/release/libr_getcsv.so dist/libr_getcsv-php${{ matrix.php-version }}-amazonlinux.so
           "
