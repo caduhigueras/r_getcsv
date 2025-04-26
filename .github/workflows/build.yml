@@ -1,0 +1,91 @@
+name: Build and Release r_getcsv PHP Extension
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, macos-latest ]
+        php-version: [ 8.0, 8.1, 8.2, 8.3 ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+
+      - name: Install dependencies
+        run: |
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            sudo apt-get update
+            sudo apt-get install -y build-essential libssl-dev pkg-config
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+            brew install openssl pkg-config
+          fi
+
+      - name: Install Rust
+        run: |
+          curl https://sh.rustup.rs -sSf | sh -s -- -y
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+      - name: Build extension
+        run: cargo build --release
+
+      - name: Package .so (or .dylib for Mac)
+        run: |
+          mkdir -p dist
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            cp target/release/libr_getcsv.so dist/libr_getcsv-php${{ matrix.php-version }}-${{ matrix.os }}.so
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+            cp target/release/libr_getcsv.dylib dist/libr_getcsv-php${{ matrix.php-version }}-${{ matrix.os }}.dylib
+          fi
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: libr_getcsv-${{ matrix.os }}-php${{ matrix.php-version }}
+          path: dist/
+
+  build_amazon_linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build inside Amazon Linux container
+        run: |
+          docker run --rm -v $PWD:/workspace -w /workspace amazonlinux:2 bash -c "
+            yum install -y gcc gcc-c++ make openssl-devel php php-devel php-pear curl git && \
+            curl https://sh.rustup.rs -sSf | sh -s -- -y && \
+            source $HOME/.cargo/env && \
+            cargo build --release && \
+            mkdir -p dist && \
+            cp target/release/libr_getcsv.so dist/libr_getcsv-php8.1-amazonlinux.so
+          "
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: libr_getcsv-amazonlinux-php8.1
+          path: dist/
+
+  release:
+    needs: [ build, build_amazon_linux ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/**/*
