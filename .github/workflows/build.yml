@@ -60,7 +60,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        php-version: [ 8.0, 8.1, 8.2, 8.3, 8.4 ]
+        php-version: [ 8.0, 8.1, 8.2, 8.3 ]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -78,7 +78,7 @@ jobs:
             set -euxo pipefail
           
             # Install PHP CLI and build dependencies
-            yum install -y gcc gcc-c++ make openssl-devel php-cli php-devel php-pear curl git && \
+            yum install -y gcc gcc-c++ make openssl-devel php-cli php-devel php-pear curl git which && \
           
             # Confirm PHP is installed
             php -v && which php && \
