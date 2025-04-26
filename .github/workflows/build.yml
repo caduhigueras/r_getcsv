@@ -74,29 +74,33 @@ jobs:
 
       - name: Build inside Amazon Linux container
         run: |
-          docker run --rm -v $PWD:/workspace -w /workspace amazonlinux:2 bash -c "
-            set -euxo pipefail
+          docker run --rm 
+            -e PHP_VERSION=${{ matrix.php-version }} \
+            -v $PWD:/workspace -w /workspace amazonlinux:2 bash -c "
+              set -euxo pipefail
           
-            # Install PHP CLI and build dependencies
-            yum install -y gcc gcc-c++ make openssl-devel php-cli php-devel php-pear curl git which && \
+              # Install PHP CLI and build dependencies
+              amazon-linux-extras enable php\${PHP_VERSION} && \
+              yum clean metadata && \
+              yum install -y php php-devel php-cli php-pear gcc gcc-c++ make openssl-devel curl git which && \
           
-            # Confirm PHP is installed
-            php -v && which php && \
+              # Confirm PHP is installed
+              php -v && which php && \
           
-            # Install Rust
-            curl https://sh.rustup.rs -sSf | sh -s -- -y && \
-            source \$HOME/.cargo/env && \
+              # Install Rust
+              curl https://sh.rustup.rs -sSf | sh -s -- -y && \
+              source \$HOME/.cargo/env && \
           
-            # Confirm PHP is available to Rust build
-            export PHP=\$(which php) && \
-            echo PHP executable is: \$PHP && \
+              # Confirm PHP is available to Rust build
+              export PHP=\$(which php) && \
+              echo PHP executable is: \$PHP && \
           
-            # Build the extension
-            cargo build --release && \
+              # Build the extension
+              cargo build --release && \
           
-            # Prepare artifacts
-            mkdir -p dist && \
-            cp target/release/libr_getcsv.so dist/libr_getcsv-php${{ matrix.php-version }}-amazonlinux.so
+              # Prepare artifacts
+              mkdir -p dist && \
+              cp target/release/libr_getcsv.so dist/libr_getcsv-php${{ matrix.php-version }}-amazonlinux.so
           "
 
       - name: Upload artifacts
