@@ -14,6 +14,9 @@ jobs:
         php-version: [ 8.0, 8.1, 8.2, 8.3 ]
     runs-on: ${{ matrix.os }}
     steps:
+      - name: Pre install Rust
+        uses: actions-rs/toolchain@v1
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -31,10 +34,10 @@ jobs:
             brew install openssl pkg-config
           fi
 
-      - name: Install Rust
-        run: |
-          curl https://sh.rustup.rs -sSf | sh -s -- -y
-          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+      #      - name: Install Rust
+      #        run: |
+      #          curl https://sh.rustup.rs -sSf | sh -s -- -y
+      #          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
       - name: Build extension
         run: cargo build --release
@@ -54,28 +57,28 @@ jobs:
           name: libr_getcsv-${{ matrix.os }}-php${{ matrix.php-version }}
           path: dist/
 
-  #  build_amazon_linux:
-  #    runs-on: ubuntu-latest
-  #    steps:
-  #      - name: Checkout code
-  #        uses: actions/checkout@v4
+  #    build_amazon_linux:
+  #      runs-on: ubuntu-latest
+  #      steps:
+  #        - name: Checkout code
+  #          uses: actions/checkout@v4
   #
-  #      - name: Build inside Amazon Linux container
-  #        run: |
-  #          docker run --rm -v $PWD:/workspace -w /workspace amazonlinux:2 bash -c "
-  #            yum install -y gcc gcc-c++ make openssl-devel php php-devel php-pear curl git && \
-  #            curl https://sh.rustup.rs -sSf | sh -s -- -y && \
-  #            source $HOME/.cargo/env && \
-  #            cargo build --release && \
-  #            mkdir -p dist && \
-  #            cp target/release/libr_getcsv.so dist/libr_getcsv-php8.1-amazonlinux.so
-  #          "
+  #        - name: Build inside Amazon Linux container
+  #          run: |
+  #            docker run --rm -v $PWD:/workspace -w /workspace amazonlinux:2 bash -c "
+  #              yum install -y gcc gcc-c++ make openssl-devel php php-devel php-pear curl git && \
+  #              curl https://sh.rustup.rs -sSf | sh -s -- -y && \
+  #              source $HOME/.cargo/env && \
+  #              cargo build --release && \
+  #              mkdir -p dist && \
+  #              cp target/release/libr_getcsv.so dist/libr_getcsv-php8.1-amazonlinux.so
+  #            "
   #
-  #      - name: Upload artifacts
-  #        uses: actions/upload-artifact@v4
-  #        with:
-  #          name: libr_getcsv-amazonlinux-php8.1
-  #          path: dist/
+  #        - name: Upload artifacts
+  #          uses: actions/upload-artifact@v4
+  #          with:
+  #            name: libr_getcsv-amazonlinux-php8.1
+  #            path: dist/
 
   release:
     needs: [ build ]
