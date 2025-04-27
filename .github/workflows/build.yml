@@ -81,9 +81,7 @@ jobs:
               set -euxo pipefail
           
               # Install PHP CLI and build dependencies
-              amazon-linux-extras enable php\${PHP_VERSION} && \
-              yum clean metadata && \
-              yum install -y php php-devel php-cli php-pear gcc gcc-c++ make openssl-devel curl git which && \
+              yum install -y php\${PHP_VERSION} php-devel php-cli php-pear gcc gcc-c++ make openssl-devel curl git which && \
           
               # Confirm PHP is installed
               php -v && which php && \
