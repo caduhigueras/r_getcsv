@@ -82,9 +82,9 @@ jobs:
           
               # Install PHP CLI and build dependencies
               yum install -y amazon-linux-extras && \
-              amazon-linux-extras enable php8.0 && \
+              amazon-linux-extras enable php\${PHP_VERSION} && \
               yum clean metadata && \
-              yum install -y php php-devel php-cli php-pear gcc gcc-c++ make openssl-devel curl git which && \
+              yum install -y php php-devel php-cli php-pear gcc gcc-c++ make openssl-devel curl git which clang clang-devel llvm-devel && \
           
               # Confirm PHP is installed
               php -v && which php && \
